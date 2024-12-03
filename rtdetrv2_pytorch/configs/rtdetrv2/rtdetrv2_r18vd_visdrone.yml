@@ -1,5 +1,5 @@
 __include__: [
-  '../dataset/coco_detection.yml',
+  '../dataset/visdrone_detection.yml',
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',
@@ -7,9 +7,8 @@ __include__: [
 ]
 
 
-tuning: https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetrv2_r18vd_120e_coco.pth
+output_dir: ./output/rtdetrv2_r18vd_visdrone
 
-output_dir: ./output/rtdetrv2_r18vd_dsp_3x_coco
 
 PResNet:
   depth: 18
@@ -26,11 +25,9 @@ HybridEncoder:
 
 RTDETRTransformerv2:
   num_layers: 3
-  num_points: [4, 4, 4]
-  cross_attn_method: discrete
 
 
-epoches: 36
+epoches: 120 
 
 optimizer:
   type: AdamW
@@ -44,6 +41,6 @@ train_dataloader:
   dataset: 
     transforms:
       policy:
-        epoch: 33
+        epoch: 117
   collate_fn:
     scales: ~

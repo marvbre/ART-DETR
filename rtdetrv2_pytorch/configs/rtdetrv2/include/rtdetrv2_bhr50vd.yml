@@ -10,19 +10,19 @@ eval_spatial_size: [1280, 1280] # h w
 
 
 RTDETR: 
-  backbone: PResNet
+  backbone: BHResNet
   encoder: HybridEncoder
   decoder: RTDETRTransformerv2
   
 
-PResNet:
+BHResNet:
   depth: 50
   variant: d
   freeze_at: 0
   return_idx: [1, 2, 3]
   num_stages: 4
-  freeze_norm: True
-  pretrained: True 
+  freeze_norm: False
+  pretrained: False 
 
 
 HybridEncoder:

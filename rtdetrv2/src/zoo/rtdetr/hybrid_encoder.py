@@ -197,7 +197,7 @@ class HybridEncoder(nn.Module):
                  expansion=1.0,
                  depth_mult=1.0,
                  act='silu',
-                 eval_spatial_size=None, 
+                 eval_spatial_size=None,
                  version='v2'):
         super().__init__()
         self.in_channels = in_channels
@@ -213,19 +213,19 @@ class HybridEncoder(nn.Module):
         # channel projection
         self.input_proj = nn.ModuleList()
         for in_channel in in_channels:
-            if version == 'v1':
-                proj = nn.Sequential(
+              if version == 'v1':
+                 proj = nn.Sequential(
                     nn.Conv2d(in_channel, hidden_dim, kernel_size=1, bias=False),
                     nn.BatchNorm2d(hidden_dim))
-            elif version == 'v2':
-                proj = nn.Sequential(OrderedDict([
+              elif version == 'v2':
+                 proj = nn.Sequential(OrderedDict([
                     ('conv', nn.Conv2d(in_channel, hidden_dim, kernel_size=1, bias=False)),
                     ('norm', nn.BatchNorm2d(hidden_dim))
-                ]))
-            else:
-                raise AttributeError()
-                
-            self.input_proj.append(proj)
+                 ]))
+              else:
+                 raise AttributeError()
+                 
+              self.input_proj.append(proj)
 
         # encoder transformer
         encoder_layer = TransformerEncoderLayer(
@@ -290,8 +290,11 @@ class HybridEncoder(nn.Module):
         return torch.concat([out_w.sin(), out_w.cos(), out_h.sin(), out_h.cos()], dim=1)[None, :, :]
 
     def forward(self, feats):
+        
         assert len(feats) == len(self.in_channels)
         proj_feats = [self.input_proj[i](feat) for i, feat in enumerate(feats)]
+
+
         
         # encoder
         if self.num_encoder_layers > 0:

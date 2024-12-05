@@ -3,7 +3,6 @@ import sys
 from torchinfo import summary
 import torch
 import time
-
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 from src.nn.backbone.presnet import PResNet
@@ -20,7 +19,7 @@ bb_old = PResNet(depth=18,
             freeze_at=0, 
             freeze_norm=True, 
             pretrained=False)
-summary(bb_old)
+#summary(bb_old)
 
 start1= time.perf_counter()
 out1 = bb_old(dummy)
@@ -49,11 +48,12 @@ out2 = bb_new(dummy)
 for stage in out2:
    print(stage.shape)"""
 
-bb_new = Hiera(input_size=(640, 640)).from_pretrained("facebook/hiera_tiny_224.mae_in1k") 
+bb_new = Hiera(embed_dim=96, num_heads=1, stages=(1, 2, 7, 2), pretrained=True)#.from_pretrained("facebook/hiera_tiny_224.mae_in1k") 
 summary(bb_new)
 
 start2= time.perf_counter()
 out = bb_new(dummy)
+print(out)
 print("Hiera took ", time.perf_counter() - start2, "s")
 
 #print(bb_new)

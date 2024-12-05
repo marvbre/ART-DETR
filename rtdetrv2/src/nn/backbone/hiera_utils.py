@@ -30,6 +30,7 @@ def pretrained_model(checkpoints: Dict[str, str], default: str = None) -> Callab
     """ Loads a Hiera model from a pretrained source (if pretrained=True). Use "checkpoint" to specify the checkpoint. """
 
     def inner(model_func: Callable) -> Callable:
+        
         def model_def(pretrained: bool = False, checkpoint: str = default, strict: bool = True, **kwdargs) -> nn.Module:
             if pretrained:
                 if checkpoints is None:
@@ -39,6 +40,7 @@ def pretrained_model(checkpoints: Dict[str, str], default: str = None) -> Callab
                 elif checkpoint not in checkpoints:
                     raise RuntimeError(f"Invalid checkpoint specified ({checkpoint}). Options are: {list(checkpoints.keys())}.")
 
+                print("Checkpoint:", checkpoint)
                 state_dict = torch.hub.load_state_dict_from_url(checkpoints[checkpoint], map_location="cpu")
             
                 if "head.projection.weight" in state_dict["model_state"]:

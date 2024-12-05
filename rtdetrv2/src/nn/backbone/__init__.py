@@ -17,3 +17,4 @@ from .csp_darknet import CSPDarkNet, CSPPAN
 
 from .hgnetv2 import HGNetv2
 from .bhresnet import BHResNet
+from .hiera import Hiera

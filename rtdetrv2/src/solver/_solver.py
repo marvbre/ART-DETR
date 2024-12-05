@@ -12,6 +12,8 @@ import atexit
 from ..misc import dist_utils
 from ..core import BaseConfig
 
+from torchinfo import summary
+
 
 def to(m: nn.Module, device: str):
     if m is None:
@@ -33,14 +35,17 @@ class BaseSolver(object):
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         self.model = cfg.model
-        
+
+        for param in self.model.parameters():
+         param.requires_grad = True #prevent frozen backbone from meta.
+
         # NOTE (lyuwenyu): must load_tuning_state before ema instance building
         if self.cfg.tuning:
             print(f'tuning checkpoint from {self.cfg.tuning}')
             self.load_tuning_state(self.cfg.tuning)
 
         self.model = dist_utils.warp_model(self.model.to(device), sync_bn=cfg.sync_bn, \
-            find_unused_parameters=cfg.find_unused_parameters)
+            find_unused_parameters=True)
 
         self.criterion = to(cfg.criterion, device)
         self.postprocessor = to(cfg.postprocessor, device)

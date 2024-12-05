@@ -26,12 +26,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from timm.models.layers import DropPath, Mlp
+from timm.layers import DropPath, Mlp
 
 from .hiera_utils import pretrained_model, conv_nd, do_pool, do_masked_conv, Unroll, Reroll
 from .hfhub import has_config, PyTorchModelHubMixin
 
 from ...core import register
+
+from torchinfo import summary
 
 class MaskUnitAttention(nn.Module):
     """
@@ -231,6 +233,7 @@ class Hiera(nn.Module, PyTorchModelHubMixin):
         head_dropout: float = 0.0,
         head_init_scale: float = 0.001,
         sep_pos_embed: bool = False,
+        pretrained = False
     ):
         super().__init__()
 
@@ -330,7 +333,15 @@ class Hiera(nn.Module, PyTorchModelHubMixin):
             nn.init.trunc_normal_(self.pos_embed_temporal, std=0.02)
         else:
             nn.init.trunc_normal_(self.pos_embed, std=0.02)
+
+      
         self.apply(partial(self._init_weights))
+
+        if(pretrained):
+            #summary(self)
+            self = self.from_pretrained("facebook/hiera_tiny_224.mae_in1k") 
+            #print("loading weights from ./weights/mae_hiera_tiny_224.pth") #mae_hiera_tiny_224.pth or hiera_tiny_224.pth
+            #self.load_state_dict(torch.load("./weights/mae_hiera_tiny_224.pth")) #, weights_only=True
         #self.head.projection.weight.data.mul_(head_init_scale)
         #self.head.projection.bias.data.mul_(head_init_scale)
 
@@ -392,7 +403,7 @@ class Hiera(nn.Module, PyTorchModelHubMixin):
         self,
         x: torch.Tensor,
         mask: torch.Tensor = None,
-        return_intermediates: bool = False,
+        return_intermediates: bool = True,
     ) -> torch.Tensor:
         """
         mask should be a boolean tensor of shape [B, #MUt*#MUy*#MUx] where #MU are the number of mask units in that dim.
@@ -403,7 +414,6 @@ class Hiera(nn.Module, PyTorchModelHubMixin):
             x = x[0]
         intermediates = []
 
-        print("Before patch emb", x.shape)
 
         x = self.patch_embed(
             x,
@@ -413,12 +423,9 @@ class Hiera(nn.Module, PyTorchModelHubMixin):
             if mask is not None
             else None,
         )
-        print("Before pos emb", x.shape)
         x = x + self.get_pos_embed()
-        print("unroll", x.shape)
         x = self.unroll(x)
 
-        print("Before masking", x.shape)
 
 
         # Discard masked tokens
@@ -427,32 +434,40 @@ class Hiera(nn.Module, PyTorchModelHubMixin):
                 x.shape[0], -1, x.shape[-1]
             )
 
-        print("Before blocks", x.shape)
          
          
         for i, blk in enumerate(self.blocks):
             x = blk(x)
-            print("After block number",i," : ", x.shape)
 
             if return_intermediates and i in self.stage_ends:
                 intermediates.append(self.reroll(x, i, mask=mask))
 
-        print("Before final mask ", x.shape)
-        if mask is None:
-            x = x.mean(dim=1)
-            x = self.norm(x)
-            #x = self.head(x)
-         
-        print("Final output ", x.shape)
-        # x may not always be in spatial order here.
-        # e.g. if q_pool = 2, mask_unit_size = (8, 8), and
-        # q_stride = (2, 2), not all unrolls were consumed,
-        # intermediates[-1] is x in spatial order
         if return_intermediates:
-            return x, intermediates
+            x = [intermediates[1].permute(0,3,2,1),  intermediates[2].permute(0,3,2,1), intermediates[3].permute(0,3,2,1)]
+            return x # one intermediate for each stage.
+        else:
+            
 
-        return x
+         if mask is None:
+               x = x.mean(dim=1)
+               x = self.norm(x)
+               #x = self.head(x)
+            
+         # x may not always be in spatial order here.
+         # e.g. if q_pool = 2, mask_unit_size = (8, 8), and
+         # q_stride = (2, 2), not all unrolls were consumed,
+         # intermediates[-1] is x in spatial order
+         #if return_intermediates:
+         #    return x, intermediates
 
+         return x
+
+
+# Target shapes for RTDETR hybrid encoder:
+#torch.Size([1, 64, 56, 56])
+#torch.Size([1, 128, 28, 28])
+#torch.Size([1, 256, 14, 14])
+#torch.Size([1, 512, 7, 7])
 
 # Image models
 
@@ -461,7 +476,7 @@ class Hiera(nn.Module, PyTorchModelHubMixin):
     "mae_in1k": "https://dl.fbaipublicfiles.com/hiera/mae_hiera_tiny_224.pth",
 }, default="mae_in1k_ft_in1k")
 def hiera_tiny_224(**kwdargs):
-    return Hiera(embed_dim=96, num_heads=1, stages=(1, 2, 7, 2), **kwdargs)
+    return Hiera(embed_dim=96, num_heads=1, stages=(1, 2, 7, 2), pretrained=False, **kwdargs)
 
 
 @pretrained_model({
@@ -469,7 +484,7 @@ def hiera_tiny_224(**kwdargs):
     "mae_in1k": "https://dl.fbaipublicfiles.com/hiera/mae_hiera_small_224.pth",
 }, default="mae_in1k_ft_in1k")
 def hiera_small_224(**kwdargs):
-    return Hiera(embed_dim=96, num_heads=1, stages=(1, 2, 11, 2), **kwdargs)
+    return Hiera(embed_dim=96, num_heads=1, stages=(1, 2, 11, 2), pretrained=False, **kwdargs)
 
 
 @pretrained_model({
@@ -477,7 +492,7 @@ def hiera_small_224(**kwdargs):
     "mae_in1k": "https://dl.fbaipublicfiles.com/hiera/mae_hiera_base_224.pth",
 }, default="mae_in1k_ft_in1k")
 def hiera_base_224(**kwdargs):
-    return Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3), **kwdargs)
+    return Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3),pretrained=False, **kwdargs)
 
 
 @pretrained_model({
@@ -485,7 +500,7 @@ def hiera_base_224(**kwdargs):
     "mae_in1k": "https://dl.fbaipublicfiles.com/hiera/mae_hiera_base_plus_224.pth",
 }, default="mae_in1k_ft_in1k")
 def hiera_base_plus_224(**kwdargs):
-    return Hiera(embed_dim=112, num_heads=2, stages=(2, 3, 16, 3), **kwdargs)
+    return Hiera(embed_dim=112, num_heads=2, stages=(2, 3, 16, 3),pretrained=False, **kwdargs)
 
 
 @pretrained_model({
@@ -493,7 +508,7 @@ def hiera_base_plus_224(**kwdargs):
     "mae_in1k": "https://dl.fbaipublicfiles.com/hiera/mae_hiera_large_224.pth",
 }, default="mae_in1k_ft_in1k")
 def hiera_large_224(**kwdargs):
-    return Hiera(embed_dim=144, num_heads=2, stages=(2, 6, 36, 4), **kwdargs)
+    return Hiera(embed_dim=144, num_heads=2, stages=(2, 6, 36, 4),pretrained=False, **kwdargs)
 
 
 @pretrained_model({
@@ -501,7 +516,7 @@ def hiera_large_224(**kwdargs):
     "mae_in1k": "https://dl.fbaipublicfiles.com/hiera/mae_hiera_huge_224.pth",
 }, default="mae_in1k_ft_in1k")
 def hiera_huge_224(**kwdargs):
-    return Hiera(embed_dim=256, num_heads=4, stages=(2, 6, 36, 4), **kwdargs)
+    return Hiera(embed_dim=256, num_heads=4, stages=(2, 6, 36, 4),pretrained=False, **kwdargs)
 
 
 # Video models
@@ -520,6 +535,7 @@ def hiera_base_16x224(num_classes: int = 400, **kwdargs):
         patch_stride=(2, 4, 4),
         patch_padding=(1, 3, 3),
         sep_pos_embed=True,
+        pretrained=False,
         **kwdargs
     )
 
@@ -530,7 +546,7 @@ def hiera_base_16x224(num_classes: int = 400, **kwdargs):
 }, default="mae_k400_ft_k400")
 def hiera_base_plus_16x224(**kwdargs):
     return hiera_base_16x224(
-        embed_dim=112, num_heads=2, stages=(2, 3, 16, 3), **kwdargs
+        embed_dim=112, num_heads=2, stages=(2, 3, 16, 3), pretrained=False,**kwdargs
     )
 
 
@@ -540,7 +556,7 @@ def hiera_base_plus_16x224(**kwdargs):
 }, default="mae_k400_ft_k400")
 def hiera_large_16x224(**kwdargs):
     return hiera_base_16x224(
-        embed_dim=144, num_heads=2, stages=(2, 6, 36, 4), **kwdargs
+        embed_dim=144, num_heads=2, stages=(2, 6, 36, 4), pretrained=False,**kwdargs
     )
 
 
@@ -550,5 +566,5 @@ def hiera_large_16x224(**kwdargs):
 }, default="mae_k400_ft_k400")
 def hiera_huge_16x224(**kwdargs):
     return hiera_base_16x224(
-        embed_dim=256, num_heads=4, stages=(2, 6, 36, 4), **kwdargs
+        embed_dim=256, num_heads=4, stages=(2, 6, 36, 4),pretrained=False, **kwdargs
     )

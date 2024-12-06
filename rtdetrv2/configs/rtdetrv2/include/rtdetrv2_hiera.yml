@@ -17,9 +17,8 @@ RTDETR:
 
 Hiera:
   input_size: [1280, 1280]
-  embed_dim: 96
-  num_heads: 1
-  stages: [1, 2, 7, 2]
+  model: "hiera_tiny_224"
+  checkpoint: = "mae_in1k_ft_in1k"
   pretrained: True
 
 

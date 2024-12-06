@@ -1,6 +1,6 @@
 
 __include__: [
-  '../dataset/coco_detection.yml',
+  '../dataset/visdrone_detection.yml',
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',

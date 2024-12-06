@@ -35,8 +35,8 @@ val_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: /data/datasets/VisDrone/VisDrone2019-DET-test-dev/images/
-    ann_file: /data/datasets/VisDrone/VisDrone_COCO/VisDrone2019-DET-test-dev.json
+    img_folder: /data/datasets/VisDrone/VisDrone2019-DET-val/images/
+    ann_file: /data/datasets/VisDrone/VisDrone_COCO/VisDrone2019-DET-val.json
     return_masks: False
     transforms:
       type: Compose

@@ -21,6 +21,8 @@ from .._misc import SanitizeBoundingBoxes
 
 from ...core import register
 
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+from torchvision import transforms
 
 RandomPhotometricDistort = register()(T.RandomPhotometricDistort)
 RandomZoomOut = register()(T.RandomZoomOut)
@@ -115,9 +117,7 @@ class ConvertBoxes(T.Transform):
 
 @register()
 class ConvertPILImage(T.Transform):
-    _transformed_types = (
-        PIL.Image.Image,
-    )
+    _transformed_types = (PIL.Image.Image,)
     def __init__(self, dtype='float32', scale=True) -> None:
         super().__init__()
         self.dtype = dtype
@@ -130,7 +130,7 @@ class ConvertPILImage(T.Transform):
 
         if self.scale:
             inpt = inpt / 255.
-
-        inpt = Image(inpt)
+         
+        inpt = Image(inpt) #
 
         return inpt

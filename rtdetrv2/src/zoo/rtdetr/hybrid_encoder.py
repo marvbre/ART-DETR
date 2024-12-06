@@ -330,4 +330,9 @@ class HybridEncoder(nn.Module):
             out = self.pan_blocks[idx](torch.concat([downsample_feat, feat_height], dim=1))
             outs.append(out)
 
+
+        print("after hybrid encoder:")
+        for ou in outs:
+            print(ou.shape)
+
         return outs

@@ -1,0 +1,32 @@
+__include__: [
+  '../dataset/visdrone_detection.yml',
+  '../runtime.yml',
+  './include/dataloader.yml',
+  './include/optimizer.yml',
+  './include/rtdetrv2_hiera.yml',
+]
+
+
+output_dir: ./output/rtdetrv2_hiera/
+
+RTDETRTransformerv2:
+  num_layers: 3
+
+
+epoches: 120 
+
+optimizer:
+  type: AdamW
+  params:
+    - 
+      params: '^(?=.*(?:norm|bn)).*$'
+      weight_decay: 0.
+
+
+train_dataloader: 
+  dataset: 
+    transforms:
+      policy:
+        epoch: 117
+  collate_fn:
+    scales: ~

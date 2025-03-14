@@ -1,0 +1,57 @@
+task: detection
+
+evaluator:
+  type: CocoEvaluator
+  iou_types: ['bbox', ]
+
+num_classes: 1
+
+train_dataloader: 
+  type: DataLoader
+  dataset: 
+    type: CocoDetection
+    img_folder: /data/datasets/PeopleOnGrass/images/train/
+    ann_file: /data/datasets//PeopleOnGrass/annotations/train.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~
+  shuffle: True
+  num_workers: 200
+  drop_last: True 
+  collate_fn:
+    type: BatchImageCollateFuncion
+
+
+val_dataloader:
+  type: DataLoader
+  dataset: 
+    type: CocoDetection
+    img_folder: /data/datasets/PeopleOnGrass/images/val/
+    ann_file: /data/datasets/PeopleOnGrass/annotations/val.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~ 
+  shuffle: False
+  num_workers: 200
+  drop_last: False
+  collate_fn:
+    type: BatchImageCollateFuncion
+
+
+test_dataloader:
+  type: DataLoader
+  dataset: 
+    type: CocoDetection
+    img_folder: /data/datasets/PeopleOnGrass/images/val/
+    ann_file: /data/datasets/VisDrone/PeopleOnGrass/val.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~ 
+  shuffle: False
+  num_workers: 200
+  drop_last: False
+  collate_fn:
+    type: BatchImageCollateFuncion

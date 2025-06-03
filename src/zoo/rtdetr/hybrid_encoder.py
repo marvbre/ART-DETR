@@ -331,8 +331,8 @@ class HybridEncoder(nn.Module):
             outs.append(out)
 
 
-        print("after hybrid encoder:")
-        for ou in outs:
-            print(ou.shape)
+        #print("after hybrid encoder:")
+        #for ou in outs:
+        #    print(ou.shape)
 
         return outs

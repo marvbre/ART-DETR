@@ -10,8 +10,8 @@ train_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: /data/datasets/VisDrone/VisDrone2019-DET-val/images/
-    ann_file: /data/datasets/VisDrone/annotations/val.json
+    img_folder: /datatank/LRT13/datasets/VisDrone2019-DET/train/images/
+    ann_file: /datatank/LRT13/datasets/VisDrone2019-DET/annotations/train.json
     return_masks: False
     transforms:
       type: Compose
@@ -27,8 +27,8 @@ val_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: /data/datasets/VisDrone/VisDrone2019-DET-test-dev/images/
-    ann_file: /data/datasets/VisDrone/annotations/test.json
+    img_folder: /datatank/LRT13/datasets/VisDrone2019-DET/val/images/
+    ann_file: /datatank/LRT13/datasets/VisDrone2019-DET/annotations/val.json
     return_masks: False
     transforms:
       type: Compose
@@ -44,8 +44,8 @@ test_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: /data/datasets/VisDrone/VisDrone2019-DET-test-dev/images/
-    ann_file: /data/datasets/VisDrone/annotations/test.json
+    img_folder:  /datatank/LRT13/datasets/VisDrone2019-DET/test/images/
+    ann_file: /datatank/LRT13/datasets/VisDrone2019-DET/annotations/test.json
     return_masks: False
     transforms:
       type: Compose

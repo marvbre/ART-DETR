@@ -45,7 +45,7 @@ class BaseSolver(object):
             self.load_tuning_state(self.cfg.tuning)
 
         self.model = dist_utils.warp_model(self.model.to(device), sync_bn=cfg.sync_bn, \
-            find_unused_parameters=True)
+            find_unused_parameters=False)
 
         self.criterion = to(cfg.criterion, device)
         self.postprocessor = to(cfg.postprocessor, device)

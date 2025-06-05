@@ -9,6 +9,7 @@ from src.nn.backbone.presnet import PResNet
 from src.nn.backbone.bhresnet import BHResNet
 from src.nn.backbone.hiera import Hiera, HybridEncoderReplacement #, imgnet_dict
 from src.nn.backbone.hiera_wrapper import PHiera
+from src.nn.backbone.regnet import RegNet
 
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
@@ -21,17 +22,34 @@ from src.zoo.rtdetr.rtdetrv2_decoder import RTDETRTransformerv2
 
 
 # Create input transformations
-input_size = 640
+input_size = 1280
 
 dummy = torch.rand(1, 3, input_size, input_size )
-
-bb_old = PResNet(depth=18, 
+"""
+resnet = PResNet(depth=18, 
             num_stages=4, 
             return_idx=[0, 1, 2, 3], 
             act='relu',
             freeze_at=-1, 
             freeze_norm=False, 
             pretrained=False)
+
+start1= time.perf_counter()
+out1 = resnet(dummy)
+print("Resnet18 took ", time.perf_counter() - start1, "s and puts out:")
+
+for stage in out1:
+   print(stage.shape)"""
+
+regnet = RegNet()
+summary(regnet)
+
+start2= time.perf_counter()
+out2 = regnet(dummy)
+print("Regnet took ", time.perf_counter() - start2, "s and puts out:")
+print(type(out2))
+for stage in out2:
+   print(stage.shape)
 
 
 #summary(bb_old)
@@ -47,14 +65,11 @@ bb_new = BHResNet(depth=18,
             freeze_at=0, 
             freeze_norm=True, 
             pretrained=False)
-#summary(bb_new)"""
+#summary(bb_new)
 
 
 bb_new = PHiera(no_head=True) #embed_dim=96, num_heads=1, stages=(1, 2, 7, 2), input_size=(1280, 1280), patch_stride=(4,4))  # bhresnet 18 [4, 4, 2, 1] -> (4, 4, 2, 1)
 #summary(bb_new)
-
-for name, param in bb_new.named_parameters():
-    print(f"{name}: requires_grad={param.requires_grad}")
 
 start2= time.perf_counter()
 intermediates = bb_new.forward(dummy, return_intermediates=True)
@@ -83,9 +98,9 @@ decoder = RTDETRTransformerv2(feat_channels= [96, 192, 384, 768], #[256, 256, 25
                               num_points= [4, 4, 4, 4], # [3,3,3] [2,2,2]
                               cross_attn_method= 'default', # default, discrete
                               query_select_method= 'default', # default, agnostic)
-)
+)"""
 
-decoder.forward(intermediates)
+#decoder.forward(intermediates)
 
 """
 start1= time.perf_counter()

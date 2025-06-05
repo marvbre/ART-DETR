@@ -3,29 +3,21 @@ __include__: [
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',
-  './include/rtdetrv2_bhr50vd.yml',
+  './include/rtdetrv2_regnet.yml',
 ]
 
 
-output_dir: ./output/rtdetrv2_r18vdBH_visdrone
-
-
-BHResNet:
-  depth: 18
-  freeze_at: -1
-  freeze_norm: False
-  pretrained: False
+output_dir: ./output/rtdetrv2_regnet_visdrone
 
 
 HybridEncoder:
-  in_channels: [128, 256, 512]
+  in_channels: [64, 160, 400]
   hidden_dim: 256
   expansion: 0.5
 
 
 RTDETRTransformerv2:
   num_layers: 3
-
 
 epoches: 120 
 

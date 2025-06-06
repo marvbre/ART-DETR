@@ -7,7 +7,7 @@ __include__: [
 ]
 
 
-output_dir: ./output/rtdetrv2_regnet_visdrone
+output_dir: ./output/rtdetrv2_regnet_coco
 
 
 HybridEncoder:

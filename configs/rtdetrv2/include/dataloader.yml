@@ -23,7 +23,7 @@ train_dataloader:
     stop_epoch: 71 # epoch in [71, ~) stop `multiscales`
 
   shuffle: True
-  total_batch_size: 1024 # total batch size equals to 16 (4 * 4)
+  total_batch_size: 512 # total batch size equals to 16 (4 * 4)
   num_workers: 8
 
 
@@ -31,7 +31,7 @@ val_dataloader:
   dataset: 
     transforms:
       ops: 
-        - {type: Resize, size: [640, 640]}
+        - {type: Resize, size: [1280, 1280]}
         - {type: ConvertPILImage, dtype: 'float32', scale: True}   
   shuffle: False
   total_batch_size: 512

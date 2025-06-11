@@ -43,8 +43,8 @@ def main(args, ):
 
     model = Model()
 
-    data = torch.rand(1, 3, 1280, 1280)
-    size = torch.tensor([[1280, 1280]])
+    data = torch.rand(1, 3, 640, 640)
+    size = torch.tensor([[640, 640]])
     _ = model(data, size)
 
     dynamic_axes = {

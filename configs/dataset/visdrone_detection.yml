@@ -1,0 +1,57 @@
+task: detection
+
+evaluator:
+  type: CocoEvaluator
+  iou_types: ['bbox', ]
+
+num_classes: 10
+
+train_dataloader: 
+  type: DataLoader
+  dataset: 
+    type: CocoDetection
+    img_folder: /datatank/LRT13/datasets/VisDrone2019-DET/images/train/
+    ann_file: /datatank/LRT13/datasets/VisDrone2019-DET/annotations/train.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~
+  shuffle: True
+  num_workers: 200
+  drop_last: True 
+  collate_fn:
+    type: BatchImageCollateFuncion
+
+
+val_dataloader:
+  type: DataLoader
+  dataset: 
+    type: CocoDetection
+    img_folder: /datatank/LRT13/datasets/VisDrone2019-DET/images/val/
+    ann_file: /datatank/LRT13/datasets/VisDrone2019-DET/annotations/val.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~ 
+  shuffle: False
+  num_workers: 200
+  drop_last: False
+  collate_fn:
+    type: BatchImageCollateFuncion
+
+
+test_dataloader:
+  type: DataLoader
+  dataset: 
+    type: CocoDetection
+    img_folder:  /datatank/LRT13/datasets/VisDrone2019-DET/images/test/
+    ann_file: /datatank/LRT13/datasets/VisDrone2019-DET/annotations/test.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~ 
+  shuffle: False
+  num_workers: 200
+  drop_last: False
+  collate_fn:
+    type: BatchImageCollateFuncion

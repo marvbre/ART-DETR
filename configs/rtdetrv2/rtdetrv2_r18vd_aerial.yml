@@ -1,14 +1,14 @@
 __include__: [
-  '../dataset/UDW-Pose.yml',
+  '../dataset/aerial_person.yml',
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',
   './include/rtdetrv2_r50vd.yml',
 ]
 
+eval_spatial_size: [1280, 1280]
 
-output_dir: ./output/rtdetrv2_r18vd_manipal_udw
-
+output_dir: ./output/rtdetrv2_r18vd_aerial_all_EO_only_giou_uavh_nomad_udw
 
 PResNet:
   depth: 18

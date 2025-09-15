@@ -20,32 +20,40 @@ from src.zoo.rtdetr.hybrid_encoder import HybridEncoder
 from src.zoo.rtdetr.rtdetrv2_decoder import RTDETRTransformerv2
 
 from src.nn.backbone import CSPDarkNet, CSPPAN, CSPDarkNetPAN
-
+from src.nn.backbone.vit import ViT_Backbone
 
 
 # Create input transformations
-input_size = 1536
+input_size = 1280
+
 
 dummy = torch.rand(1, 3, input_size, input_size )
 
-m = CSPDarkNet(3, width_multi=1.0, depth_multi=1.25,  return_idx = [1,2,3,4,-1])
-#m = CSPDarkNetPAN(3, width_multi=width_multi, depth_multi=depth_multi,  return_idx = [3,4,5,6,7])
-#[64, 128, 256, 512, 1024, 1024, 1024, 1024] 
-#summary(m)
-
+m = ViT_Backbone()
 
 start2= time.perf_counter()
 out2 = m(dummy)
-print("CSP-Darknet-P7 took ", time.perf_counter() - start2, "s and puts out:")
+print("ViT took ", time.perf_counter() - start2, "s and puts out:")
 
 for stage in out2:
    print(stage.shape)
-n = CSPPAN(in_channels=[256, 512, 1024, 1024, 1024], depth_multi=1.25, act='silu')
 
-start3= time.perf_counter()
-out3 = n(out2)
-print("PAN took ", time.perf_counter() - start2, "s and puts out:")
-for stage in out3:
-   print(stage.shape)
+lol = HybridEncoder(in_channels=[384, 384, 384],
+                     feat_strides=[8, 16, 32],
+                     hidden_dim=256,
+                     nhead=8,
+                     dim_feedforward = 1024,
+                     dropout=0.0,
+                     enc_act='gelu',
+                     use_encoder_idx=[2],
+                     num_encoder_layers=1,
+                     pe_temperature=10000,
+                     expansion=1.0,
+                     depth_mult=1.0,
+                     act='silu',
+                     eval_spatial_size=None,
+                     version='v2')
+summary(lol)
+lol.forward(out2)
 
 #problem is: CSP Backbone assumes every level is half resolution of previous level and half the channels...

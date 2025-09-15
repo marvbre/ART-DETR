@@ -1,5 +1,5 @@
 __include__: [
-  '../dataset/aerial_person.yml',
+  '../dataset/manipal.yml',
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',

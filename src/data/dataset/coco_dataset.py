@@ -18,6 +18,8 @@ from ._dataset import DetDataset
 from .._misc import convert_to_tv_tensor
 from ...core import register
 
+import copy
+
 __all__ = ['CocoDetection']
 
 
@@ -45,6 +47,7 @@ class CocoDetection(torchvision.datasets.CocoDetection, DetDataset):
         image, target = super(CocoDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
         target = {'image_id': image_id, 'annotations': target}
+        
 
         if self.remap_mscoco_category:
             image, target = self.prepare(image, target, category2label=mscoco_category2label)
@@ -52,7 +55,7 @@ class CocoDetection(torchvision.datasets.CocoDetection, DetDataset):
         else:
             image, target = self.prepare(image, target)
 
-        target['idx'] = torch.tensor([idx])
+        target['idx'] = torch.tensor([idx])       
 
         if 'boxes' in target:
             target['boxes'] = convert_to_tv_tensor(target['boxes'], key='boxes', spatial_size=image.size[::-1])

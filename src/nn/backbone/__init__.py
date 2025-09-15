@@ -20,3 +20,4 @@ from .bhresnet import BHResNet
 from .hiera_wrapper import PHiera
 from .hiera import Hiera, HybridEncoderReplacement
 from .regnet import RegNet
+from .vit import ViT_Backbone

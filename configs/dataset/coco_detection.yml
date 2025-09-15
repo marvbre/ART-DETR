@@ -18,8 +18,8 @@ train_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: /datatank/LRT13/datasets/COCO/images/train/
-    ann_file: /datatank/LRT13/datasets/COCO/annotations/other/instances_train2017.json
+    img_folder: /datatank/marvin.brenner/datasets/COCO/images/train/
+    ann_file: /datatank/marvin.brenner/datasets/COCO/annotations/other/instances_train2017.json
     return_masks: False
     transforms:
       type: Compose
@@ -35,8 +35,8 @@ val_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: /datatank/LRT13/datasets/COCO/images/val/
-    ann_file:  /datatank/LRT13/datasets/COCO/annotations/other/instances_val2017.json
+    img_folder: /datatank/marvin.brenner/datasets/COCO/images/val/
+    ann_file:  /datatank/marvin.brenner/datasets/COCO/annotations/other/instances_val2017.json
     return_masks: False
     transforms:
       type: Compose

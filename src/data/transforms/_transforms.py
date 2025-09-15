@@ -13,10 +13,6 @@ import torchvision.transforms.v2.functional as F
 import PIL
 import PIL.Image
 
-#from PIL import Image
-
-PIL.Image.MAX_IMAGE_PIXELS = None  # Allow loading very large images
-
 from typing import Any, Dict, List, Optional
 
 from .._misc import convert_to_tv_tensor, _boxes_keys
@@ -25,8 +21,6 @@ from .._misc import SanitizeBoundingBoxes
 
 from ...core import register
 
-from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-from torchvision import transforms
 
 RandomPhotometricDistort = register()(T.RandomPhotometricDistort)
 RandomZoomOut = register()(T.RandomZoomOut)
@@ -118,10 +112,15 @@ class ConvertBoxes(T.Transform):
 
         return inpt
 
+    def transform(self, inpt: Any, params: Dict[str, Any]) -> Any:
+        return self._transform(inpt, params)
+
 
 @register()
 class ConvertPILImage(T.Transform):
-    _transformed_types = (PIL.Image.Image,)
+    _transformed_types = (
+        PIL.Image.Image,
+    )
     def __init__(self, dtype='float32', scale=True) -> None:
         super().__init__()
         self.dtype = dtype
@@ -134,7 +133,10 @@ class ConvertPILImage(T.Transform):
 
         if self.scale:
             inpt = inpt / 255.
-         
-        inpt = Image(inpt) #
+
+        inpt = Image(inpt)
 
         return inpt
+
+    def transform(self, inpt: Any, params: Dict[str, Any]) -> Any:
+        return self._transform(inpt, params)

@@ -16,6 +16,44 @@ from .box_ops import box_cxcywh_to_xyxy, generalized_box_iou
 
 from ...core import register
 
+def wasserstein_distance_matrix(pred, target, eps=1e-7, mode='exp', gamma=1, constant=12.8):
+    """
+    pred: [num_queries, 4]
+    target: [num_gt, 4]
+    returns: [num_queries, num_gt] cost matrix
+    """
+    # Expand for broadcasting
+    pred = pred[:, None, :]    # (N, 1, 4)
+    target = target[None, :, :]  # (1, M, 4)
+
+    center1 = (pred[..., :2] + pred[..., 2:]) / 2
+    center2 = (target[..., :2] + target[..., 2:]) / 2
+    whs = center1 - center2
+    center_distance = whs[..., 0] ** 2 + whs[..., 1] ** 2 + eps
+
+    w1 = pred[..., 2] - pred[..., 0] + eps
+    h1 = pred[..., 3] - pred[..., 1] + eps
+    w2 = target[..., 2] - target[..., 0] + eps
+    h2 = target[..., 3] - target[..., 1] + eps
+
+    wh_distance = ((w1 - w2) ** 2 + (h1 - h2) ** 2) / 4
+    wasserstein_2 = center_distance + wh_distance
+
+    if mode == 'exp':
+        normalized_wasserstein = torch.exp(-torch.sqrt(wasserstein_2) / constant)
+        wloss = 1 - normalized_wasserstein
+    elif mode == 'sqrt':
+        wloss = torch.sqrt(wasserstein_2)
+    elif mode == 'log':
+        wloss = torch.log(wasserstein_2 + 1)
+    elif mode == 'norm_sqrt':
+        wloss = 1 - 1 / (gamma + torch.sqrt(wasserstein_2))
+    elif mode == 'w2':
+        wloss = wasserstein_2
+    else:
+        raise ValueError(f"Unknown mode: {mode}")
+
+    return wloss  # shape: [num_queries, num_gt]
 
 @register()
 class HungarianMatcher(nn.Module):
@@ -97,6 +135,7 @@ class HungarianMatcher(nn.Module):
         cost_bbox = torch.cdist(out_bbox, tgt_bbox, p=1)
 
         # Compute the giou cost betwen boxes
+        #cost_giou = -wasserstein_distance_matrix(box_cxcywh_to_xyxy(out_bbox), box_cxcywh_to_xyxy(tgt_bbox), eps=1e-7, mode='exp', gamma=1, constant=12.8)
         cost_giou = -generalized_box_iou(box_cxcywh_to_xyxy(out_bbox), box_cxcywh_to_xyxy(tgt_bbox))
         
         # Final cost matrix

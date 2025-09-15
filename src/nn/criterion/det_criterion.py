@@ -10,6 +10,56 @@ from ...misc import box_ops
 from ...misc import dist_utils
 from ...core import register
 
+def wasserstein_loss(pred, target, eps=1e-7, mode='exp', gamma=1, constant=12.8):
+    r"""`Implementation of paper `Enhancing Geometric Factors into
+    Model Learning and Inference for Object Detection and Instance
+    Segmentation <https://arxiv.org/abs/2005.03572>`_.
+
+    Code is modified from https://github.com/Zzh-tju/CIoU.
+
+    Args:
+        pred (Tensor): Predicted bboxes of format (x1, y1, x2, y2),
+            shape (n, 4).
+        target (Tensor): Corresponding gt bboxes, shape (n, 4).
+        eps (float): Eps to avoid log(0).
+    Return:
+        Tensor: Loss tensor.
+    """
+    center1 = (pred[:, :2] + pred[:, 2:]) / 2
+    center2 = (target[:, :2] + target[:, 2:]) / 2
+
+    whs = center1[:, :2] - center2[:, :2]
+
+    center_distance = whs[:, 0] * whs[:, 0] + whs[:, 1] * whs[:, 1] + eps #
+
+    w1 = pred[:, 2] - pred[:, 0]  + eps
+    h1 = pred[:, 3] - pred[:, 1]  + eps
+    w2 = target[:, 2] - target[:, 0]  + eps
+    h2 = target[:, 3] - target[:, 1]  + eps
+
+    wh_distance = ((w1 - w2) ** 2 + (h1 - h2) ** 2) / 4
+
+    wasserstein_2 = center_distance + wh_distance
+
+    if mode == 'exp':
+        normalized_wasserstein = torch.exp(-torch.sqrt(wasserstein_2)/constant)
+        wloss = 1 - normalized_wasserstein
+    
+    if mode == 'sqrt':
+        wloss = torch.sqrt(wasserstein_2)
+    
+    if mode == 'log':
+        wloss = torch.log(wasserstein_2 + 1)
+
+    if mode == 'norm_sqrt':
+        wloss = 1 - 1 / (gamma + torch.sqrt(wasserstein_2))
+
+    if mode == 'w2':
+        wloss = wasserstein_2
+
+    return wloss
+
+
 
 @register()
 class DetCriterion(torch.nn.Module):
@@ -144,7 +194,9 @@ class DetCriterion(torch.nn.Module):
         src_boxes = torchvision.ops.box_convert(src_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
         target_boxes = torchvision.ops.box_convert(target_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
         loss_giou = 1 - box_ops.elementwise_generalized_box_iou(src_boxes, target_boxes)
-        losses['loss_giou'] = loss_giou.sum() / num_boxes
+        loss_nwd = wasserstein_loss(src_boxes, target_boxes, eps=1e-7, mode='exp', gamma=1, constant=12.8)
+        #losses['loss_giou'] =  loss_giou.sum() / num_boxes #loss_giou.sum() / num_boxes
+        losses['loss_nwd'] = loss_nwd.sum() / num_boxes
         return losses
 
     def loss_boxes_giou(self, outputs, targets, indices, num_boxes):
@@ -156,16 +208,32 @@ class DetCriterion(torch.nn.Module):
         losses = {}
         src_boxes = torchvision.ops.box_convert(src_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
         target_boxes = torchvision.ops.box_convert(target_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
-        loss_giou = 1 - box_ops.elementwise_generalized_box_iou(src_boxes, target_boxes)
+        loss_giou = 1 - box_ops.elementwise_generalized_box_iou(src_boxes, target_boxes) #wasserstein_loss(src_boxes, target_boxes, eps=1e-7, mode='exp', gamma=1, constant=12.8) #
         losses['loss_giou'] = loss_giou.sum() / num_boxes
+        return losses
+
+    def loss_boxes_nwd(self, outputs, target, indices, num_boxes):
+        assert 'pred_boxes' in outputs
+        idx = self._get_src_permutation_idx(indices)        
+        src_boxes = outputs['pred_boxes'][idx]
+        target_boxes = torch.cat([t['boxes'][i] for t, (_, i) in zip(targets, indices)], dim=0)
+
+        losses = {}
+        src_boxes = torchvision.ops.box_convert(src_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
+        target_boxes = torchvision.ops.box_convert(target_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
+
+        loss_nwd = wasserstein_loss(src_boxes, target_boxes, eps=1e-7, mode='exp', gamma=1, constant=12.8)
+        losses['loss_nwd'] = loss_nwd.sum() / num_boxes
         return losses
 
     def get_loss(self, loss, outputs, targets, indices, num_boxes, **kwargs):
         loss_map = {
             'boxes': self.loss_boxes,
             'giou': self.loss_boxes_giou,
+            #'nwd'  : self.loss_boxes_nwd,
             'vfl': self.loss_labels_vfl,
-            'focal': self.loss_labels_focal,
+            'focal': self.loss_labels_focal
         }
         assert loss in loss_map, f'do you really want to compute {loss} loss?'
         return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
+

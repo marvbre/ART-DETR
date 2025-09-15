@@ -1,5 +1,5 @@
 __include__: [
-  '../dataset/manipal.yml',
+  '../dataset/visdrone_detection_person.yml',
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',
@@ -7,14 +7,16 @@ __include__: [
 ]
 
 
-output_dir: ./output/rtdetrv2_r18vd_120e_coco
+output_dir: ./output/rtdetrv2_r18vd_120e_coco_person
+
+eval_spatial_size: [640, 640] # h w
 
 
 PResNet:
   depth: 18
   freeze_at: -1
   freeze_norm: False
-  pretrained: True
+  pretrained: False
 
 
 HybridEncoder:
@@ -27,7 +29,7 @@ RTDETRTransformerv2:
   num_layers: 3
 
 
-epoches: 120 
+epoches: 1
 
 optimizer:
   type: AdamW

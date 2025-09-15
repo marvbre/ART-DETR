@@ -17,7 +17,7 @@ def main(args, ):
     cfg = YAMLConfig(args.config, resume=args.resume)
 
     if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu') 
+        checkpoint = torch.load(args.resume, map_location='cuda') 
         if 'ema' in checkpoint:
             state = checkpoint['ema']['module']
         else:
@@ -41,10 +41,10 @@ def main(args, ):
             outputs = self.postprocessor(outputs, orig_target_sizes)
             return outputs
 
-    model = Model()
+    model = Model().cuda()
 
-    data = torch.rand(1, 3, 1280, 1280)
-    size = torch.tensor([[1280, 1280]])
+    data = torch.rand(1, 3, 1280, 1280).cuda()
+    size = torch.tensor([[1280, 1280]]).cuda()
     _ = model(data, size)
 
     dynamic_axes = {

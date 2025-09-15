@@ -1,5 +1,5 @@
 __include__: [
-  '../dataset/visdrone_detection.yml',
+  '../dataset/aerial_person.yml',
   '../runtime.yml',
   './include/dataloader.yml',
   './include/optimizer.yml',
@@ -7,8 +7,9 @@ __include__: [
 ]
 
 
-output_dir: ./output/rtdetrv2_r101vd_6x_visdrone
+output_dir: ./output/rtdetrv2_r101vd_6x_aerial_all
 
+eval_spatial_size: [1280, 1280] 
 
 PResNet:
   depth: 101

@@ -70,10 +70,10 @@ RTDETRPostProcessor:
 
 
 RTDETRCriterionv2:
-  weight_dict: {loss_vfl: 1, loss_bbox: 5, loss_giou: 2,}
+  weight_dict: {loss_vfl: 2, loss_bbox: 5, loss_giou: 2,}
   losses: ['vfl', 'boxes', ]
-  alpha: 0.75
-  gamma: 2.0
+  alpha: 0.65
+  gamma: 2.5
 
   matcher:
     type: HungarianMatcher

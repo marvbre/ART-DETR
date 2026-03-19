@@ -195,8 +195,8 @@ class DetCriterion(torch.nn.Module):
         target_boxes = torchvision.ops.box_convert(target_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
         loss_giou = 1 - box_ops.elementwise_generalized_box_iou(src_boxes, target_boxes)
         loss_nwd = wasserstein_loss(src_boxes, target_boxes, eps=1e-7, mode='exp', gamma=1, constant=12.8)
-        #losses['loss_giou'] =  loss_giou.sum() / num_boxes #loss_giou.sum() / num_boxes
-        losses['loss_nwd'] = loss_nwd.sum() / num_boxes
+        losses['loss_giou'] =  loss_giou.sum() / num_boxes #loss_giou.sum() / num_boxes
+        #losses['loss_nwd'] = loss_nwd.sum() / num_boxes
         return losses
 
     def loss_boxes_giou(self, outputs, targets, indices, num_boxes):
@@ -216,7 +216,7 @@ class DetCriterion(torch.nn.Module):
         assert 'pred_boxes' in outputs
         idx = self._get_src_permutation_idx(indices)        
         src_boxes = outputs['pred_boxes'][idx]
-        target_boxes = torch.cat([t['boxes'][i] for t, (_, i) in zip(targets, indices)], dim=0)
+        target_boxes = torch.cat([t['boxes'][i] for t, (_, i) in zip(target, indices)], dim=0)
 
         losses = {}
         src_boxes = torchvision.ops.box_convert(src_boxes, in_fmt=self.box_fmt, out_fmt='xyxy')
@@ -229,9 +229,9 @@ class DetCriterion(torch.nn.Module):
     def get_loss(self, loss, outputs, targets, indices, num_boxes, **kwargs):
         loss_map = {
             'boxes': self.loss_boxes,
-            'giou': self.loss_boxes_giou,
+            'giou':  self.loss_boxes_nwd, #self.loss_boxes_giou
             #'nwd'  : self.loss_boxes_nwd,
-            'vfl': self.loss_labels_vfl,
+            'vfl':   self.loss_labels_vfl,
             'focal': self.loss_labels_focal
         }
         assert loss in loss_map, f'do you really want to compute {loss} loss?'
